@@ -142,5 +142,11 @@
 		"completionsAdvancedSetting": "github.copilot.advanced",
 		"completionsEnablementSetting": "github.copilot.enable",
 		"nextEditSuggestionsSetting": "github.copilot.nextEditSuggestions.enabled"
+	},
+	"configurationDefaults": {
+		"workbench.colorTheme": "Default Light Modern",
+		"workbench.preferredLightColorTheme": "Default Light Modern",
+		"workbench.preferredDarkColorTheme": "Default Light Modern",
+		"markdown-editor.customCss": "html, body { background-color: #ffffff !important; color: #000000 !important; } .vditor, .vditor-reset { background-color: #ffffff !important; color: #000000 !important; }"
 	}
 }

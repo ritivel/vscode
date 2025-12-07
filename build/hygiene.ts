@@ -232,31 +232,52 @@ function createGitIndexVinyls(paths: string[]): Promise<VinylFile[]> {
 		new Promise<VinylFile | null>((c, e) => {
 			const fullPath = path.join(repositoryPath, relativePath);
 
-			fs.stat(fullPath, (err, stat) => {
-				if (err && err.code === 'ENOENT') {
-					// ignore deletions
-					return c(null);
-				} else if (err) {
-					return e(err);
-				}
+			// Check if this is a submodule by checking git ls-files mode
+			cp.exec(
+				`git ls-files --stage ${relativePath}`,
+				{ maxBuffer: 1024 },
+				(lsErr, lsOut) => {
+					// If ls-files fails, continue with normal file handling
+					if (lsErr) {
+						// Continue to normal file handling
+					} else {
+						// If mode starts with 160000, it's a submodule - skip it
+						if (lsOut.trim().startsWith('160000')) {
+							return c(null);
+						}
+					}
 
-				cp.exec(
-					process.platform === 'win32' ? `git show :${relativePath}` : `git show ':${relativePath}'`,
-					{ maxBuffer: stat.size, encoding: 'buffer' },
-					(err, out) => {
-						if (err) {
+					fs.stat(fullPath, (err, stat) => {
+						if (err && err.code === 'ENOENT') {
+							// ignore deletions
+							return c(null);
+						} else if (err) {
 							return e(err);
 						}
 
-						c(new VinylFile({
-							path: fullPath,
-							base: repositoryPath,
-							contents: out,
-							stat: stat,
-						}));
-					}
-				);
-			});
+						cp.exec(
+							process.platform === 'win32' ? `git show :${relativePath}` : `git show ':${relativePath}'`,
+							{ maxBuffer: stat.size, encoding: 'buffer' },
+							(err, out) => {
+								if (err) {
+									// If git show fails with "bad object", it might be a submodule - skip it
+									if (err.message && err.message.includes('bad object')) {
+										return c(null);
+									}
+									return e(err);
+								}
+
+								c(new VinylFile({
+									path: fullPath,
+									base: repositoryPath,
+									contents: out,
+									stat: stat,
+								}));
+							}
+						);
+					});
+				}
+			);
 		})
 	);
 

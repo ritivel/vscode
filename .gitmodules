@@ -1,3 +1,6 @@
 [submodule "extensions/cline"]
 	path = extensions/cline
 	url = https://github.com/ritivel/cline.git
+[submodule "extensions/vscode-markdown-editor"]
+	path = extensions/vscode-markdown-editor
+	url = https://github.com/ritivel/vscode-markdown-editor.git
