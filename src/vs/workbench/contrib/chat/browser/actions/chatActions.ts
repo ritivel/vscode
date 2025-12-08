@@ -421,6 +421,40 @@ class PrimaryOpenChatGlobalAction extends OpenChatGlobalAction {
 			}]
 		});
 	}
+
+	override async run(accessor: ServicesAccessor, opts?: string | IChatViewOpenOptions): Promise<IChatAgentResult & { type?: 'confirmation' } | undefined> {
+		// Check if Cline (Ritivel) extension is installed
+		const extensionsWorkbenchService = accessor.get(IExtensionsWorkbenchService);
+		const commandService = accessor.get(ICommandService);
+
+		// Try to find Cline extension (could be claude-dev or cline)
+		const clineExtensions = extensionsWorkbenchService.local.filter(ext =>
+			ext.identifier.id === 'saoudrizwan.claude-dev' ||
+			ext.identifier.id === 'saoudrizwan.cline' ||
+			ext.identifier.id === 'Cline.cline'
+		);
+
+		if (clineExtensions.length > 0) {
+			const clineExtension = clineExtensions[0];
+			// Try to open Cline's sidebar instead of default chat
+			try {
+				// Try to open Cline sidebar using the view focus command
+				// The view ID format is: {extensionName}.SidebarProvider
+				const viewId = clineExtension.identifier.id.includes('claude-dev')
+					? 'claude-dev.SidebarProvider'
+					: 'cline.SidebarProvider';
+
+				await commandService.executeCommand(`${viewId}.focus`);
+				return undefined;
+			} catch (error) {
+				// If command fails, fall through to default chat behavior
+				console.warn('Failed to open Cline sidebar, falling back to default chat:', error);
+			}
+		}
+
+		// Fall back to default chat behavior if Cline is not available
+		return super.run(accessor, opts);
+	}
 }
 
 export function getOpenChatActionIdForMode(mode: IChatMode): string {
@@ -468,6 +502,36 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
+			// Check if Cline (Ritivel) extension is installed
+			const extensionsWorkbenchService = accessor.get(IExtensionsWorkbenchService);
+			const commandService = accessor.get(ICommandService);
+
+			// Try to find Cline extension (could be claude-dev or cline)
+			const clineExtensions = extensionsWorkbenchService.local.filter(ext =>
+				ext.identifier.id === 'saoudrizwan.claude-dev' ||
+				ext.identifier.id === 'saoudrizwan.cline' ||
+				ext.identifier.id === 'Cline.cline'
+			);
+
+			if (clineExtensions.length > 0) {
+				const clineExtension = clineExtensions[0];
+				// Try to open Cline's sidebar instead of default chat
+				try {
+					// Try to open Cline sidebar using the view focus command
+					// The view ID format is: {extensionName}.SidebarProvider
+					const viewId = clineExtension.identifier.id.includes('claude-dev')
+						? 'claude-dev.SidebarProvider'
+						: 'cline.SidebarProvider';
+
+					await commandService.executeCommand(`${viewId}.focus`);
+					return;
+				} catch (error) {
+					// If command fails, fall through to default chat behavior
+					console.warn('Failed to open Cline sidebar, falling back to default chat:', error);
+				}
+			}
+
+			// Fall back to default chat behavior if Cline is not available
 			const layoutService = accessor.get(IWorkbenchLayoutService);
 			const viewsService = accessor.get(IViewsService);
 			const viewDescriptorService = accessor.get(IViewDescriptorService);

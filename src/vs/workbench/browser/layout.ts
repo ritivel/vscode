@@ -1947,6 +1947,14 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			return; // Return if not initialized fully (https://github.com/microsoft/vscode/issues/105480)
 		}
 
+		// Always keep panel hidden in UI, but allow functionality to work
+		// This ensures problems, output, debug console, terminal, ports still function
+		// even though the panel is not visible
+		const originalHidden = hidden;
+		if (!hidden) {
+			hidden = true; // Force panel to always be hidden in UI
+		}
+
 		if (!hidden && this.setAuxiliaryBarMaximized(false) && this.isVisible(Parts.PANEL_PART)) {
 			return; // return: leaving maximised auxiliary bar made this part visible
 		}
@@ -1958,16 +1966,15 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		const isPanelMaximized = this.isPanelMaximized();
 		const panelOpensMaximized = this.panelOpensMaximized();
 
-		// Adjust CSS
-		if (hidden) {
-			this.mainContainer.classList.add(LayoutClasses.PANEL_HIDDEN);
-		} else {
-			this.mainContainer.classList.remove(LayoutClasses.PANEL_HIDDEN);
-		}
+		// Adjust CSS - always keep panel hidden in UI
+		this.mainContainer.classList.add(LayoutClasses.PANEL_HIDDEN);
 
-		// If panel part becomes hidden, also hide the current active panel if any
+		// Don't hide the active pane composite when forcing panel to be hidden
+		// This allows views (problems, output, debug console, terminal, ports) to still function
+		// even though the panel is not visible in the UI
 		let focusEditor = false;
-		if (hidden && this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Panel)) {
+		if (originalHidden && hidden && this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Panel)) {
+			// Only hide pane composite if it was originally intended to be hidden
 			this.paneCompositeService.hideActivePaneComposite(ViewContainerLocation.Panel);
 			if (
 				!isIOS &&						// do not auto focus on iOS (https://github.com/microsoft/vscode/issues/127832)
@@ -1977,8 +1984,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			}
 		}
 
-		// If panel part becomes visible, show last active panel or default panel
-		else if (!hidden && !this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Panel)) {
+		// If panel part becomes visible (but we're forcing it hidden), still allow views to be opened
+		// This ensures functionality works even when panel is hidden
+		if (!originalHidden && !this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Panel)) {
 			let panelToOpen: string | undefined = this.paneCompositeService.getLastActivePaneCompositeId(ViewContainerLocation.Panel);
 
 			// verify that the panel we try to open has views before we default to it
