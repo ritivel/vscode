@@ -4,3 +4,6 @@
 [submodule "extensions/vscode-markdown-editor"]
 	path = extensions/vscode-markdown-editor
 	url = https://github.com/ritivel/vscode-markdown-editor.git
+[submodule "extensions/copilot-chat"]
+	path = extensions/copilot-chat
+	url = https://github.com/ritivel/vscode-copilot-chat.git
