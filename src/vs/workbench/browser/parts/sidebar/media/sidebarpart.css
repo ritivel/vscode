@@ -28,10 +28,12 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	transition: opacity 200ms ease-out;
 }
 
 .monaco-workbench .viewlet .collapsible.header .actions {
 	width: 0; /* not using display: none for keyboard a11y reasons */
+	transition: width 200ms ease-out, opacity 200ms ease-out;
 }
 
 .monaco-workbench .viewlet .split-view-view:hover > .header .actions,
@@ -72,6 +74,7 @@
 .monaco-workbench .part.sidebar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label,
 .monaco-workbench .part.sidebar > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
 	outline-offset: 2px;
+	border-radius: 6px; /* Life Sciences: Rounded sidebar actions */
 }
 
 .hc-black .monaco-workbench .part.sidebar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label,
@@ -92,6 +95,11 @@
 .monaco-workbench .part.sidebar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked:not(:focus) .active-item-indicator:before,
 .monaco-workbench .part.sidebar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked.clicked:focus .active-item-indicator:before {
 	border-top-color: var(--vscode-activityBarTop-activeBorder) !important;
+}
+
+.monaco-workbench .part.sidebar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label,
+.monaco-workbench .part.sidebar > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
+	transition: color 150ms ease-out, background-color 150ms ease-out;
 }
 
 .monaco-workbench .part.sidebar > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label,

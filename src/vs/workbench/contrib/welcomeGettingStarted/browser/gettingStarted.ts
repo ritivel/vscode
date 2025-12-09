@@ -912,7 +912,7 @@ export class GettingStartedPage extends EditorPane {
 		}));
 
 		const header = $('.header', {},
-			$('h1.product-name.caption', {}, this.productService.nameLong),
+			$('h1.product-name.caption', {}, localize('gettingStarted.ritivel.productName', "Ritivel")),
 			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
 		);
 

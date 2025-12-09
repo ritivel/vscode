@@ -169,16 +169,16 @@ export class ToggleSidebarPositionAction extends Action2 {
 registerAction2(ToggleSidebarPositionAction);
 
 const configureLayoutIcon = registerIcon('configure-layout-icon', Codicon.layout, localize('cofigureLayoutIcon', 'Icon represents workbench layout configuration.'));
-MenuRegistry.appendMenuItem(MenuId.LayoutControlMenu, {
-	submenu: MenuId.LayoutControlMenuSubmenu,
-	title: localize('configureLayout', "Configure Layout"),
-	icon: configureLayoutIcon,
-	group: '1_workbench_layout',
-	when: ContextKeyExpr.and(
-		IsAuxiliaryWindowContext.negate(),
-		ContextKeyExpr.equals('config.workbench.layoutControl.type', 'menu')
-	)
-});
+// MenuRegistry.appendMenuItem(MenuId.LayoutControlMenu, {
+// 	submenu: MenuId.LayoutControlMenuSubmenu,
+// 	title: localize('configureLayout', "Configure Layout"),
+// 	icon: configureLayoutIcon,
+// 	group: '1_workbench_layout',
+// 	when: ContextKeyExpr.and(
+// 		IsAuxiliaryWindowContext.negate(),
+// 		ContextKeyExpr.equals('config.workbench.layoutControl.type', 'menu')
+// 	)
+// });
 
 
 MenuRegistry.appendMenuItems([{
@@ -1454,14 +1454,14 @@ registerAction2(class CustomizeLayoutAction extends Action2 {
 					id: MenuId.LayoutControlMenuSubmenu,
 					group: 'z_end',
 				},
-				{
-					id: MenuId.LayoutControlMenu,
-					when: ContextKeyExpr.and(
-						IsAuxiliaryWindowContext.toNegated(),
-						ContextKeyExpr.equals('config.workbench.layoutControl.type', 'both')
-					),
-					group: '1_layout'
-				}
+				// {
+				// 	id: MenuId.LayoutControlMenu,
+				// 	when: ContextKeyExpr.and(
+				// 		IsAuxiliaryWindowContext.toNegated(),
+				// 		ContextKeyExpr.equals('config.workbench.layoutControl.type', 'both')
+				// 	),
+				// 	group: '1_layout'
+				// }
 			]
 		});
 	}

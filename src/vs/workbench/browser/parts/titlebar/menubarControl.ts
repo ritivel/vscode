@@ -65,15 +65,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
 	order: 2
 });
 
-MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
-	submenu: MenuId.MenubarSelectionMenu,
-	title: {
-		value: 'Selection',
-		original: 'Selection',
-		mnemonicTitle: localize({ key: 'mSelection', comment: ['&& denotes a mnemonic'] }, "&&Selection")
-	},
-	order: 3
-});
 
 MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
 	submenu: MenuId.MenubarViewMenu,
@@ -85,25 +76,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
 	order: 4
 });
 
-MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
-	submenu: MenuId.MenubarGoMenu,
-	title: {
-		value: 'Go',
-		original: 'Go',
-		mnemonicTitle: localize({ key: 'mGoto', comment: ['&& denotes a mnemonic'] }, "&&Go")
-	},
-	order: 5
-});
 
-MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
-	submenu: MenuId.MenubarTerminalMenu,
-	title: {
-		value: 'Terminal',
-		original: 'Terminal',
-		mnemonicTitle: localize({ key: 'mTerminal', comment: ['&& denotes a mnemonic'] }, "&&Terminal")
-	},
-	order: 7
-});
 
 MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
 	submenu: MenuId.MenubarHelpMenu,

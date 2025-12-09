@@ -62,6 +62,10 @@
 	border-top-color: var(--vscode-panelTitle-activeBorder) !important;
 }
 
+.monaco-workbench .part.panel > .title > .composite-bar-container >.composite-bar > .monaco-action-bar .action-item .action-label {
+	transition: color 150ms ease-out;
+}
+
 .monaco-workbench .part.panel > .title > .composite-bar-container >.composite-bar > .monaco-action-bar .action-item:focus .action-label,
 .monaco-workbench .part.panel > .title > .composite-bar-container >.composite-bar > .monaco-action-bar .action-item:hover .action-label {
 	color: var(--vscode-panelTitle-activeForeground) !important;

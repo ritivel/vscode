@@ -38,6 +38,12 @@
         "path": "./themes/light_modern.json"
       },
       {
+        "id": "Regulatory Modern",
+        "label": "%regulatoryModernThemeLabel%",
+        "uiTheme": "vs",
+        "path": "./themes/regulatory_modern.json"
+      },
+      {
         "id": "Visual Studio Dark",
         "label": "%darkColorThemeLabel%",
         "uiTheme": "vs-dark",

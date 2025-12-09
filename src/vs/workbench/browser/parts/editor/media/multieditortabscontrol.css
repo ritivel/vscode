@@ -105,6 +105,7 @@
 	box-sizing: border-box;
 	padding-left: 10px;
 	outline-offset: -2px;
+	transition: background-color 200ms ease-out, color 200ms ease-out;
 }
 
 /* Tab Background Color in/active group/tab */
@@ -284,6 +285,11 @@
 	left: 0;
 	pointer-events: none;
 	width: 100%;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-border-top-container,
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-border-bottom-container {
+	transition: opacity 200ms ease-out, background-color 200ms ease-out;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.active.tab-border-top:not(:focus) > .tab-border-top-container,
@@ -557,4 +563,44 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab:last-child.drop-target-left::after,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab:first-child.drop-target-right::before {
 	width: 2px;
+}
+
+/* Tab Animations */
+@keyframes tab-enter {
+	0% {
+		opacity: 0;
+		transform: translateY(5px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes tab-exit {
+	0% {
+		opacity: 1;
+		transform: scale(1);
+		max-width: 160px;
+		min-width: 50px;
+		padding-left: 10px;
+	}
+	100% {
+		opacity: 0;
+		transform: scale(0.8);
+		max-width: 0;
+		min-width: 0;
+		padding-left: 0;
+		flex-grow: 0.00001;
+	}
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.tab-entering {
+	animation: tab-enter 0.2s ease-out forwards;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.exiting {
+	animation: tab-exit 0.2s ease-out forwards;
+	pointer-events: none;
+	overflow: hidden;
 }

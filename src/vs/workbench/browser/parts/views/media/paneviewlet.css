@@ -47,6 +47,7 @@
 	min-width: 3ch;
 	-webkit-margin-before: 0;
 	-webkit-margin-after: 0;
+	transition: opacity 200ms ease-out;
 }
 
 .monaco-pane-view .pane > .pane-header .description {

@@ -199,6 +199,7 @@ body {
 	-moz-appearance: none;
 	/* Hides inner border from FF */
 	border: 1px solid;
+	border-radius: 4px; /* Life Sciences: Rounded selects */
 }
 
 .monaco-workbench .select-container {
@@ -237,6 +238,7 @@ body {
 	outline-offset: -1px;
 	outline-color: var(--vscode-focusBorder);
 	opacity: 1;
+	border-radius: 4px; /* Life Sciences: Rounded focus rings */
 }
 
 .monaco-workbench.hc-black .synthetic-focus input,

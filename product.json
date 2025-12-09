@@ -144,9 +144,9 @@
 		"nextEditSuggestionsSetting": "github.copilot.nextEditSuggestions.enabled"
 	},
 	"configurationDefaults": {
-		"workbench.colorTheme": "Default Light Modern",
-		"workbench.preferredLightColorTheme": "Default Light Modern",
-		"workbench.preferredDarkColorTheme": "Default Light Modern",
-		"markdown-editor.customCss": "html, body { background-color: #ffffff !important; color: #000000 !important; } .vditor, .vditor-reset { background-color: #ffffff !important; color: #000000 !important; }"
+		"workbench.colorTheme": "Regulatory Modern",
+		"workbench.preferredLightColorTheme": "Regulatory Modern",
+		"workbench.preferredDarkColorTheme": "Regulatory Modern",
+		"markdown-editor.customCss": "html, body { background-color: #FAFAF8 !important; color: #3D4F5F !important; } .vditor, .vditor-reset { background-color: #FAFAF8 !important; color: #3D4F5F !important; } .vditor-toolbar { background-color: #F5F7F9 !important; border-bottom: 1px solid #E4ECF4 !important; border-radius: 8px 8px 0 0 !important; } .vditor-reset a { color: #5A8AB5 !important; } .vditor-reset blockquote { border-left-color: #7EB6E8 !important; background-color: #E8F0F8 !important; border-radius: 0 8px 8px 0 !important; } .vditor-reset code:not(.hljs) { background-color: #EEF4F9 !important; color: #5A8AB5 !important; border-radius: 4px !important; }"
 	}
 }

@@ -50,7 +50,8 @@
 	height: 48px;
 	margin-right: 0;
 	box-sizing: border-box;
-
+	transition: color 150ms ease-out, background-color 150ms ease-out;
+	border-radius: 8px; /* Life Sciences: Rounded corners for icons */
 }
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-label:not(.codicon) {
@@ -85,6 +86,7 @@
 	height: 100%;
 	width: 0;
 	border-left: 2px solid;
+	transition: width 150ms ease-out, border-color 150ms ease-out;
 }
 
 .monaco-workbench.hc-black .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.checked .active-item-indicator:before,

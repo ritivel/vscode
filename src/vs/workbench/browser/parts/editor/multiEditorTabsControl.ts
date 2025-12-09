@@ -520,7 +520,14 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 		// Create tabs as needed
 		const [tabsContainer, tabsScrollbar] = assertReturnsAllDefined(this.tabsContainer, this.tabsScrollbar);
-		for (let i = tabsContainer.children.length; i < this.tabsModel.count; i++) {
+		let visibleCount = 0;
+		for (let i = 0; i < tabsContainer.children.length; i++) {
+			if (!tabsContainer.children[i].classList.contains('exiting')) {
+				visibleCount++;
+			}
+		}
+
+		for (let i = visibleCount; i < this.tabsModel.count; i++) {
 			tabsContainer.appendChild(this.createTab(i, tabsContainer, tabsScrollbar));
 		}
 
@@ -604,16 +611,28 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 		// There are tabs to show
 		if (this.tabsModel.count) {
+			const tabsContainer = assertReturnsDefined(this.tabsContainer);
 
 			// Remove tabs that got closed
-			const tabsContainer = assertReturnsDefined(this.tabsContainer);
-			while (tabsContainer.children.length > this.tabsModel.count) {
+			const oldEditors = this.tabLabels.map(l => l.editor);
+			for (let i = oldEditors.length - 1; i >= 0; i--) {
+				const editor = oldEditors[i];
+				if (!this.tabsModel.contains(editor)) {
+					this.doCloseTab(i);
+				}
+			}
 
-				// Remove one tab from container (must be the last to keep indexes in order!)
-				tabsContainer.lastChild?.remove();
+			// Fallback: if count still doesn't match (e.g. duplicates logic), remove from end
+			let visibleCount = 0;
+			for (let i = 0; i < tabsContainer.children.length; i++) {
+				if (!tabsContainer.children[i].classList.contains('exiting')) {
+					visibleCount++;
+				}
+			}
 
-				// Remove associated tab label and widget
-				dispose(this.tabDisposables.pop());
+			while (visibleCount > this.tabsModel.count) {
+				this.doCloseTab(this.tabDisposables.length - 1);
+				visibleCount--;
 			}
 
 			// A removal of a label requires to recompute all labels
@@ -637,6 +656,21 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 			this.clearEditorActionsToolbar();
 			this.updateTabsControlVisibility();
+		}
+	}
+
+	private doCloseTab(index: number): void {
+		const tab = this.getVisibleTab(index);
+		if (tab) {
+			tab.classList.add('exiting');
+			setTimeout(() => {
+				tab.remove();
+			}, 300);
+		}
+
+		if (this.tabDisposables[index]) {
+			dispose(this.tabDisposables[index]);
+			this.tabDisposables.splice(index, 1);
 		}
 	}
 
@@ -807,9 +841,25 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		this.doWithTab(this.tabsModel.indexOf(editor), editor, fn);
 	}
 
+	private getVisibleTab(tabIndex: number): HTMLElement | undefined {
+		if (!this.tabsContainer) {
+			return undefined;
+		}
+		let visibleIndex = 0;
+		for (let i = 0; i < this.tabsContainer.children.length; i++) {
+			const child = this.tabsContainer.children[i] as HTMLElement;
+			if (!child.classList.contains('exiting')) {
+				if (visibleIndex === tabIndex) {
+					return child;
+				}
+				visibleIndex++;
+			}
+		}
+		return undefined;
+	}
+
 	private doWithTab(tabIndex: number, editor: EditorInput, fn: (editor: EditorInput, tabIndex: number, tabContainer: HTMLElement, tabLabelWidget: IResourceLabel, tabLabel: IEditorInputLabel, tabActionBar: ActionBar) => void): void {
-		const tabsContainer = assertReturnsDefined(this.tabsContainer);
-		const tabContainer = tabsContainer.children[tabIndex] as HTMLElement;
+		const tabContainer = this.getVisibleTab(tabIndex);
 		const tabResourceLabel = this.tabResourceLabels.get(tabIndex);
 		const tabLabel = this.tabLabels[tabIndex];
 		const tabActionBar = this.tabActionBars[tabIndex];
@@ -825,6 +875,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			draggable: true,
 			role: 'tab'
 		});
+		tabContainer.classList.add('tab-entering');
 
 		// Gesture Support
 		const gestureDisposable = Gesture.addTarget(tabContainer);
