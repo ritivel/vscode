@@ -298,7 +298,7 @@ viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 
 viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 	content: localize({ key: 'noFolderHelpWeb', comment: ['Please do not translate the word "command", it is part of our internal syntax which must not change'] },
-		"You have not yet opened a folder.\n{0}\n{1}", openFolderViaWorkspaceButton, openRecentButton),
+		"You have not yet opened a drug file folder.\n{0}\n{1}", openFolderViaWorkspaceButton, openRecentButton),
 	when: ContextKeyExpr.and(
 		// inside a .code-workspace
 		WorkbenchStateContext.isEqualTo('workspace'),
@@ -325,7 +325,7 @@ viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 
 viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 	content: localize({ key: 'noFolderButEditorsHelp', comment: ['Please do not translate the word "command", it is part of our internal syntax which must not change'] },
-		"You have not yet opened a folder.\n{0}\nOpening a folder will close all currently open editors. To keep them open, {1} instead.", openFolderButton, addAFolderButton),
+		"You have not yet opened a drug file folder.\n{0}\nOpening a folder will close all currently open editors. To keep them open, {1} instead.", openFolderButton, addAFolderButton),
 	when: ContextKeyExpr.and(
 		// editors are opened
 		ContextKeyExpr.has('editorIsOpen'),
@@ -342,7 +342,7 @@ viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 
 viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 	content: localize({ key: 'noFolderHelp', comment: ['Please do not translate the word "command", it is part of our internal syntax which must not change'] },
-		"You have not yet opened a folder.\n{0}", openFolderButton),
+		"You have not yet opened a drug file folder.\n{0}", openFolderButton),
 	when: ContextKeyExpr.and(
 		// no editor is open
 		ContextKeyExpr.has('editorIsOpen')?.negate(),

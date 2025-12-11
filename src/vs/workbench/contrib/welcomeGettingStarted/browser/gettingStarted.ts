@@ -9,11 +9,9 @@ import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { DomScrollableElement } from '../../../../base/browser/ui/scrollbar/scrollableElement.js';
-import { Toggle } from '../../../../base/browser/ui/toggle/toggle.js';
 import { coalesce, equals } from '../../../../base/common/arrays.js';
 import { Delayer, Throttler } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { splitRecentLabel } from '../../../../base/common/labels.js';
@@ -23,7 +21,7 @@ import { parse } from '../../../../base/common/marshalling.js';
 import { Schemas, matchesScheme } from '../../../../base/common/network.js';
 import { OS } from '../../../../base/common/platform.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
-import { assertReturnsDefined } from '../../../../base/common/types.js';
+import { assertReturnsDefined, hasKey } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import './media/gettingStarted.css';
@@ -46,7 +44,7 @@ import { IQuickInputService } from '../../../../platform/quickinput/common/quick
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { firstSessionDateStorageKey, ITelemetryService, TelemetryLevel } from '../../../../platform/telemetry/common/telemetry.js';
 import { getTelemetryLevel } from '../../../../platform/telemetry/common/telemetryUtils.js';
-import { defaultButtonStyles, defaultKeybindingLabelStyles, defaultToggleStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles, defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IWindowOpenable } from '../../../../platform/window/common/window.js';
 import { IWorkspaceContextService, UNKNOWN_EMPTY_WINDOW_WORKSPACE } from '../../../../platform/workspace/common/workspace.js';
 import { IRecentFolder, IRecentWorkspace, IRecentlyOpened, IWorkspacesService, isRecentFolder, isRecentWorkspace } from '../../../../platform/workspaces/common/workspaces.js';
@@ -74,7 +72,6 @@ import { KeybindingLabel } from '../../../../base/browser/ui/keybindingLabel/key
 import { ScrollbarVisibility } from '../../../../base/common/scrollable.js';
 
 const SLIDE_TRANSITION_TIME_MS = 250;
-const configurationKey = 'workbench.startupEditor';
 
 export const allWalkthroughsHiddenContext = new RawContextKey<boolean>('allWalkthroughsHidden', false);
 export const inWelcomeContext = new RawContextKey<boolean>('inWelcome', false);
@@ -113,7 +110,21 @@ type GettingStartedActionEvent = {
 	argument: string | undefined;
 };
 
-type RecentEntry = (IRecentFolder | IRecentWorkspace) & { id: string };
+type RegulatoryProduct = {
+	drugName: string;
+	marketName: string;
+	workspacePath: string;
+};
+
+type ProductEntry = {
+	id: string;
+	label: string;
+	product: RegulatoryProduct;
+	isProduct: true;
+	folderUri: URI;
+};
+
+type RecentEntry = ((IRecentFolder | IRecentWorkspace) & { id: string }) | ProductEntry;
 
 const REDUCED_MOTION_KEY = 'workbench.welcomePage.preferReducedMotion';
 export class GettingStartedPage extends EditorPane {
@@ -884,32 +895,6 @@ export class GettingStartedPage extends EditorPane {
 	private async buildCategoriesSlide() {
 
 		this.categoriesSlideDisposables.clear();
-		const showOnStartupCheckbox = new Toggle({
-			icon: Codicon.check,
-			actionClassName: 'getting-started-checkbox',
-			isChecked: this.configurationService.getValue(configurationKey) === 'welcomePage',
-			title: localize('checkboxTitle', "When checked, this page will be shown on startup."),
-			...defaultToggleStyles
-		});
-		showOnStartupCheckbox.domNode.id = 'showOnStartup';
-		const showOnStartupLabel = $('label.caption', { for: 'showOnStartup' }, localize('welcomePage.showOnStartup', "Show welcome page on startup"));
-		const onShowOnStartupChanged = () => {
-			if (showOnStartupCheckbox.checked) {
-				this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'showOnStartupChecked', argument: undefined, walkthroughId: this.currentWalkthrough?.id });
-				this.configurationService.updateValue(configurationKey, 'welcomePage');
-			} else {
-				this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'showOnStartupUnchecked', argument: undefined, walkthroughId: this.currentWalkthrough?.id });
-				this.configurationService.updateValue(configurationKey, 'none');
-			}
-		};
-		this.categoriesSlideDisposables.add(showOnStartupCheckbox);
-		this.categoriesSlideDisposables.add(showOnStartupCheckbox.onChange(() => {
-			onShowOnStartupChanged();
-		}));
-		this.categoriesSlideDisposables.add(addDisposableListener(showOnStartupLabel, 'click', () => {
-			showOnStartupCheckbox.checked = !showOnStartupCheckbox.checked;
-			onShowOnStartupChanged();
-		}));
 
 		const header = $('.header', {},
 			$('h1.product-name.caption', {}, localize('gettingStarted.ritivel.productName', "Ritivel")),
@@ -923,11 +908,7 @@ export class GettingStartedPage extends EditorPane {
 		const recentList = this.buildRecentlyOpenedList();
 		const gettingStartedList = this.buildGettingStartedWalkthroughsList();
 
-		const footer = $('.footer', {},
-			$('p.showOnStartup', {},
-				showOnStartupCheckbox.domNode,
-				showOnStartupLabel,
-			));
+		const footer = $('.footer', {});
 
 		const layoutLists = () => {
 			if (gettingStartedList.itemCount) {
@@ -1009,14 +990,50 @@ export class GettingStartedPage extends EditorPane {
 
 	private buildRecentlyOpenedList(): GettingStartedIndexList<RecentEntry> {
 		const renderRecent = (recent: RecentEntry) => {
+			// Check if it's a product entry
+			if (hasKey(recent, { isProduct: true }) && recent.isProduct) {
+				const product = recent.product;
+				const li = $('li');
+				const link = $('button.button-link');
+
+				link.innerText = `${product.drugName} - ${product.marketName}`;
+				link.title = `Product: ${product.drugName} (${product.marketName})`;
+				link.setAttribute('aria-label', `Open product ${product.drugName} - ${product.marketName}`);
+				link.addEventListener('click', e => {
+					this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', {
+						command: 'openProduct',
+						argument: JSON.stringify(product),
+						walkthroughId: this.currentWalkthrough?.id
+					});
+					// Open the product
+					this.commandService.executeCommand('cline.openRegulatoryProduct', JSON.stringify(product));
+					e.preventDefault();
+					e.stopPropagation();
+				});
+				li.appendChild(link);
+
+				const span = $('span');
+				span.classList.add('path');
+				span.classList.add('detail');
+				span.innerText = product.workspacePath;
+				span.title = product.workspacePath;
+				li.appendChild(span);
+
+				return li;
+			}
+
+			// Regular workspace/folder entry
 			let fullPath: string;
 			let windowOpenable: IWindowOpenable;
 			if (isRecentFolder(recent)) {
 				windowOpenable = { folderUri: recent.folderUri };
 				fullPath = recent.label || this.labelService.getWorkspaceLabel(recent.folderUri, { verbose: Verbosity.LONG });
-			} else {
+			} else if (isRecentWorkspace(recent)) {
 				fullPath = recent.label || this.labelService.getWorkspaceLabel(recent.workspace, { verbose: Verbosity.LONG });
 				windowOpenable = { workspaceUri: recent.workspace.configPath };
+			} else {
+				// This should never happen, but TypeScript needs this branch
+				throw new Error('Unexpected recent entry type');
 			}
 
 			const { name, parentPath } = splitRecentLabel(fullPath);
@@ -1029,9 +1046,10 @@ export class GettingStartedPage extends EditorPane {
 			link.setAttribute('aria-label', localize('welcomePage.openFolderWithPath', "Open folder {0} with path {1}", name, parentPath));
 			link.addEventListener('click', e => {
 				this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'openRecent', argument: undefined, walkthroughId: this.currentWalkthrough?.id });
+				const remoteAuthority = hasKey(recent, { remoteAuthority: true }) ? recent.remoteAuthority : null;
 				this.hostService.openWindow([windowOpenable], {
 					forceNewWindow: e.ctrlKey || e.metaKey,
-					remoteAuthority: recent.remoteAuthority || null // local window if remoteAuthority is not set or can not be deducted from the openable
+					remoteAuthority: remoteAuthority || null // local window if remoteAuthority is not set or can not be deducted from the openable
 				});
 				e.preventDefault();
 				e.stopPropagation();
@@ -1071,14 +1089,31 @@ export class GettingStartedPage extends EditorPane {
 			});
 
 		recentlyOpenedList.onDidChange(() => this.registerDispatchListeners());
-		this.recentlyOpened.then(({ workspaces }) => {
-			// Filter out the current workspace
+
+		// Load both recent workspaces AND regulatory products
+		Promise.all([
+			this.recentlyOpened,
+			this.loadRegulatoryProducts()
+		]).then(([{ workspaces }, products]) => {
+			// Filter out current workspace
 			const workspacesWithID = workspaces
 				.filter(recent => !this.workspaceContextService.isCurrentWorkspace(isRecentWorkspace(recent) ? recent.workspace : recent.folderUri))
 				.map(recent => ({ ...recent, id: isRecentWorkspace(recent) ? recent.workspace.id : recent.folderUri.toString() }));
 
+			// Convert products to recent-like entries
+			const productEntries: ProductEntry[] = products.map((product: RegulatoryProduct, index: number) => ({
+				id: `product-${index}`,
+				label: `${product.drugName} - ${product.marketName}`,
+				product: product, // Store full product config
+				isProduct: true as const,
+				folderUri: URI.file(product.workspacePath)
+			}));
+
+			// Combine and sort (products first, then workspaces)
+			const allEntries = [...productEntries, ...workspacesWithID];
+
 			const updateEntries = () => {
-				recentlyOpenedList.setEntries(workspacesWithID);
+				recentlyOpenedList.setEntries(allEntries);
 			};
 
 			updateEntries();
@@ -1086,6 +1121,21 @@ export class GettingStartedPage extends EditorPane {
 		}).catch(onUnexpectedError);
 
 		return recentlyOpenedList;
+	}
+
+	// Add new method to load regulatory products
+	private async loadRegulatoryProducts(): Promise<RegulatoryProduct[]> {
+		try {
+			// Execute command to get products from extension
+			const productsJson = await this.commandService.executeCommand<string>('cline.getRegulatoryProducts');
+			if (productsJson) {
+				return JSON.parse(productsJson);
+			}
+		} catch (error) {
+			// Extension might not be available, silently fail
+			console.log('Failed to load regulatory products:', error);
+		}
+		return [];
 	}
 
 	private buildStartList(): GettingStartedIndexList<IWelcomePageStartEntry> {

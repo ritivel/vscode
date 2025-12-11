@@ -6,7 +6,8 @@
 .monaco-workbench > .notifications-center {
 	position: absolute;
 	z-index: 1000;
-	right: 7px; /* attempt to position at same location as a toast */
+	left: 7px !important; /* attempt to position at same location as a toast */
+	right: auto !important;
 	bottom: 29px; /* 22px status bar height + 7px (attempt to position at same location as a toast) */
 	display: none;
 	overflow: hidden;
@@ -64,4 +65,10 @@
 
 .monaco-workbench > .notifications-center .codicon.codicon-info {
 	color: var(--vscode-notificationsInfoIcon-foreground) !important;
+}
+
+/* Ensure notifications always appear on the left side, even in RTL mode */
+.monaco-workbench[dir="rtl"] > .notifications-center {
+	left: 7px !important;
+	right: auto !important;
 }
