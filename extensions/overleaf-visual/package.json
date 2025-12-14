@@ -1,0 +1,68 @@
+{
+  "name": "overleaf-visual",
+  "displayName": "Overleaf Visual Editor",
+  "description": "Open .tex files in an Overleaf-style visual editor (webview).",
+  "version": "0.0.1",
+  "publisher": "vscode",
+  "license": "AGPL-3.0",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onCustomEditor:overleafVisual.editor"
+  ],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "overleafVisual.editor",
+        "displayName": "Overleaf Visual Editor",
+        "priority": "default",
+        "selector": [
+          {
+            "filenamePattern": "*.tex"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "npx gulp compile-extension:overleaf-visual",
+    "watch": "npx gulp watch-extension:overleaf-visual",
+    "build:webview": "node ./esbuild.mjs",
+    "watch:webview": "node ./esbuild.mjs --watch"
+  },
+  "devDependencies": {
+    "@codemirror/autocomplete": "github:overleaf/codemirror-autocomplete#6445cd056671c98d12d1c597ba705e11327ec4c5",
+    "@codemirror/commands": "^6.7.1",
+    "@codemirror/lang-markdown": "^6.4.0",
+    "@codemirror/language": "^6.11.1",
+    "@codemirror/lint": "^6.9.0",
+    "@codemirror/search": "github:overleaf/codemirror-search#04380a528c339cd4b78fb10b3ef017f657ec17bd",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.0",
+    "@lezer/common": "^1.2.3",
+    "@lezer/generator": "^1.7.3",
+    "@lezer/highlight": "^1.2.1",
+    "@lezer/lr": "^1.4.2",
+    "@lezer/markdown": "^1.4.3",
+    "@fontsource/material-symbols-outlined": "^5.2.5",
+    "@phosphor-icons/react": "^2.1.7",
+    "bootstrap": "^5.3.8",
+    "check-types": "^5.1.0",
+    "classnames": "^2.5.1",
+    "downshift": "^9.0.9",
+    "focus-trap-react": "^11.0.4",
+    "i18next": "^23.16.0",
+    "lodash": "^4.17.19",
+    "mathjax": "^3.2.2",
+    "p-map": "^4.0.0",
+    "path-browserify": "^1.0.1",
+    "pdfjs-dist": "^5.1.91",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-error-boundary": "^5.0.0",
+    "react-bootstrap": "^2.10.10",
+    "react-i18next": "^15.1.3"
+  }
+}

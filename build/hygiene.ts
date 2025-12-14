@@ -257,7 +257,10 @@ function createGitIndexVinyls(paths: string[]): Promise<VinylFile[]> {
 
 						cp.exec(
 							process.platform === 'win32' ? `git show :${relativePath}` : `git show ':${relativePath}'`,
-							{ maxBuffer: stat.size, encoding: 'buffer' },
+						// NOTE: We size the buffer from the working tree file, but `git show` reads the index.
+						// If the file changed after staging (e.g. Unicode normalization) the index version can
+						// be slightly larger and trip Node's maxBuffer check. Add slack to avoid crashes.
+						{ maxBuffer: Math.max(stat.size * 2, stat.size + 1024 * 1024, 2 * 1024 * 1024), encoding: 'buffer' },
 							(err, out) => {
 								if (err) {
 									// If git show fails with "bad object", it might be a submodule - skip it

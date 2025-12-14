@@ -4,3 +4,9 @@
 
 Use the `/generate-dossier` command to have Ritivel analyze your source documents and generate regulatory content for all CTD sections. Ritivel follows ICH guidelines and creates properly formatted LaTeX documents.
 
+
+
+
+
+
+

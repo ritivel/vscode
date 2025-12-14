@@ -1,0 +1,249 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "@fontsource/material-symbols-outlined";
+
+:root {
+	--ov-font-sans: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+	--ov-font-mono: var(--vscode-editor-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace);
+	--ov-toolbar-height: 38px;
+
+	/* Minimal Overleaf design tokens used by embedded components */
+	--font-sans: var(--ov-font-sans);
+	--source-font-family: var(--ov-font-mono);
+	--font-size: 14px;
+	--line-height: 1.5;
+
+	/* Spacing tokens referenced by some widgets */
+	--spacing-03: 6px;
+	--spacing-10: 20px;
+
+	/* Placeholder colors used by visual-theme.ts */
+	--content-placeholder: rgba(125, 125, 125, 0.55);
+	--content-placeholder-dark: rgba(200, 200, 200, 0.45);
+
+	/* Table generator palette fallbacks */
+	--neutral-10: rgba(125, 125, 125, 0.10);
+	--neutral-20: rgba(125, 125, 125, 0.20);
+	--neutral-30: rgba(125, 125, 125, 0.30);
+	--neutral-40: rgba(125, 125, 125, 0.40);
+	--neutral-60: rgba(125, 125, 125, 0.60);
+	--neutral-70: rgba(125, 125, 125, 0.75);
+	--neutral-80: rgba(125, 125, 125, 0.85);
+
+	--blue-10: rgba(45, 90, 200, 0.12);
+	--green-10: rgba(0, 200, 100, 0.12);
+	--green-20: rgba(0, 200, 100, 0.20);
+	--green-70: rgba(0, 200, 100, 0.75);
+}
+
+html, body {
+	padding: 0;
+	margin: 0;
+	height: 100%;
+	font-family: var(--ov-font-sans);
+	color: var(--vscode-foreground);
+	background: var(--vscode-editor-background);
+}
+
+#overleaf-visual-root {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.ov-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+	background: var(--vscode-editor-background);
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	min-height: var(--ov-toolbar-height);
+}
+
+/* Minimal styles to support Overleaf toolbar components */
+.ov-toolbar .ol-cm-toolbar-button-group {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.ov-toolbar .ol-cm-toolbar-button {
+	border: 1px solid transparent;
+	background: transparent;
+	color: inherit;
+	width: 26px;
+	height: 26px;
+	border-radius: 4px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	overflow: hidden; /* prevents ligature strings from overlapping if the font isn't available */
+	white-space: nowrap;
+}
+
+.ov-toolbar .ol-cm-toolbar-button:hover {
+	background: rgba(125, 125, 125, 0.15);
+}
+
+.ov-toolbar .material-symbols {
+	font-family: "Material Symbols Outlined";
+	font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+	font-size: 18px;
+	line-height: 1;
+}
+
+/* Ensure overlays/popovers appear above the editor */
+.ov-toolbar .popover,
+.ov-toolbar .dropdown-menu {
+	z-index: 1000;
+}
+
+/* Minimal styling for the legacy table size picker */
+.ol-cm-toolbar-table-grid-popover {
+	padding: 8px;
+}
+
+.ol-cm-toolbar-table-size-label {
+	font-size: 12px;
+	margin-bottom: 6px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.ol-cm-toolbar-table-grid {
+	border-collapse: separate;
+	border-spacing: 2px;
+}
+
+.ol-cm-toolbar-table-cell {
+	width: 14px;
+	height: 14px;
+	border-radius: 2px;
+	background: rgba(125, 125, 125, 0.15);
+	cursor: pointer;
+}
+
+.ol-cm-toolbar-table-cell.active {
+	background: var(--vscode-button-background, rgba(125, 125, 125, 0.35));
+}
+
+/* Make the editor-mode switch readable even without Overleaf's full stylesheet */
+.editor-toggle-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-right: 8px;
+}
+
+.toggle-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px;
+	border: 1px solid var(--vscode-panel-border);
+	border-radius: 6px;
+}
+
+.toggle-switch .toggle-switch-input {
+	margin: 0 4px 0 0;
+}
+
+.toggle-switch .toggle-switch-label span {
+	font-size: 12px;
+}
+
+.ov-toolbar .ov-sep {
+	width: 1px;
+	align-self: stretch;
+	background: var(--vscode-panel-border);
+	margin: 0 4px;
+}
+
+.ov-btn, .ov-select {
+	font: inherit;
+	font-size: 12px;
+	border: 1px solid var(--vscode-input-border, transparent);
+	border-radius: 4px;
+	background: var(--vscode-button-secondaryBackground, rgba(125,125,125,0.15));
+	color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+	padding: 4px 8px;
+	cursor: pointer;
+}
+
+.ov-btn:hover {
+	filter: brightness(1.05);
+}
+
+.ov-btn:active {
+	filter: brightness(0.98);
+}
+
+.ov-btn.primary {
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border-color: transparent;
+}
+
+.ov-btn:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+}
+
+.ov-inline {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.ov-spinner {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	border: 2px solid rgba(255, 255, 255, 0.35);
+	border-top-color: currentColor;
+	animation: ov-spin 0.8s linear infinite;
+}
+
+@keyframes ov-spin {
+	to { transform: rotate(360deg); }
+}
+
+.ov-editor {
+	flex: 1;
+	min-height: 0;
+}
+
+/* CodeMirror doesn't automatically fill parent height.
+	Without this, the editor shrinks to content height and looks "limited"
+	(often showing a dashed/dotted boundary). */
+.ov-editor > .cm-editor {
+	height: 100%;
+}
+
+.ov-editor .cm-scroller {
+	height: 100%;
+	overflow: auto;
+}
+
+/* Allow clicking/selection below the last line (visual editor UX). */
+.ov-editor .cm-content,
+.ov-editor .cm-gutters {
+	min-height: 100%;
+}
+
+.ov-status {
+	font-size: 11px;
+	padding: 4px 10px;
+	border-top: 1px solid var(--vscode-panel-border);
+	color: var(--vscode-descriptionForeground);
+}
+
+

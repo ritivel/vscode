@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src {{cspSource}} https: data:; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}} https: data:; script-src {{cspSource}} 'nonce-{{nonce}}'; connect-src {{cspSource}} https:;">
+	<title>Overleaf Visual Editor</title>
+
+	<!-- Minimal meta tags used by Overleaf frontend helpers (getMeta) -->
+	<meta name="ol-mathJaxPath" content="{{mathJaxUri}}">
+	<meta name="ol-symbolPaletteAvailable" data-type="boolean" content="">
+	<meta name="ol-project_id" content="local-project">
+	<meta name="ol-anonymous" data-type="boolean" content="">
+	<meta name="ol-ExposedSettings" data-type="json" content='{"appName":"Overleaf Visual","isOverleaf":false,"validRootDocExtensions":["tex"],"hasLinkedProjectFileFeature":false,"hasLinkedProjectOutputFileFeature":false,"hasLinkUrlFeature":true,"maxUploadSize":26214400}'>
+
+	<link rel="stylesheet" href="{{styleUri}}">
+</head>
+<body>
+	<div id="overleaf-visual-root"></div>
+	<script nonce="{{nonce}}" type="module" src="{{scriptUri}}"></script>
+</body>
+</html>
+
