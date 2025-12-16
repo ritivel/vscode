@@ -8,6 +8,7 @@ import { EventEmitter } from 'events';
 EventEmitter.defaultMaxListeners = 100;
 
 import gulp from 'gulp';
+import fs from 'fs';
 import * as path from 'path';
 import * as nodeUtil from 'util';
 import es from 'event-stream';
@@ -75,7 +76,7 @@ const compilations = [
 
 	'.vscode/extensions/vscode-selfhost-test-provider/tsconfig.json',
 	'.vscode/extensions/vscode-selfhost-import-aid/tsconfig.json',
-];
+].filter(tsconfigFile => fs.existsSync(path.join(root, tsconfigFile)));
 
 const getBaseUrl = (out: string) => `https://main.vscode-cdn.net/sourcemaps/${commit}/${out}`;
 

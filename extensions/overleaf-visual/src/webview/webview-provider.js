@@ -38,10 +38,11 @@ class OverleafVisualEditorProvider {
 			],
 		};
 
-		webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
-
 		const apiAdapter = new OverleafVisualApiAdapter(webviewPanel.webview, document, workspaceFolder);
 
+		// Register message handler before setting webview HTML.
+		// The webview posts an initial `{ type: 'ready' }` message on startup; if we set HTML first,
+		// that message can race ahead of this listener and we miss the initial document content.
 		webviewPanel.webview.onDidReceiveMessage((message) => {
 			if (apiAdapter.tryHandleMessage(message)) {
 				return;
@@ -54,6 +55,8 @@ class OverleafVisualEditorProvider {
 				apiAdapter.sendDocumentUpdate(document.getText());
 			}
 		});
+
+		webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
 		let updateTimeout;
 		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument((e) => {

@@ -123980,10 +123980,13 @@ function WebviewApp() {
   const editorHostRef = (0, import_react154.useRef)(null);
   const [view, setView] = (0, import_react154.useState)(null);
   const [state, setState] = (0, import_react154.useState)(() => EditorState.create());
+  const viewRef = (0, import_react154.useRef)(null);
   const [showVisual, setShowVisual] = (0, import_react154.useState)(true);
   const [isCompiling, setIsCompiling] = (0, import_react154.useState)(false);
   const [compileStatus, setCompileStatus] = (0, import_react154.useState)("Ready");
   const compileTimeoutRef = (0, import_react154.useRef)(null);
+  const pendingInitialContent = (0, import_react154.useRef)(null);
+  const isApplyingExternalUpdate = (0, import_react154.useRef)(false);
   const requestIdRef = (0, import_react154.useRef)(0);
   const pendingPreview = (0, import_react154.useRef)(/* @__PURE__ */ new Map());
   const previewByPath = (0, import_react154.useCallback)((p2) => {
@@ -124001,6 +124004,21 @@ function WebviewApp() {
     });
     return null;
   }, []);
+  const applyExternalContentToView = (0, import_react154.useCallback)((targetView, content2) => {
+    const current2 = targetView.state.doc.toString();
+    if (current2 === content2) {
+      return;
+    }
+    isApplyingExternalUpdate.current = true;
+    try {
+      targetView.dispatch({
+        changes: { from: 0, to: targetView.state.doc.length, insert: content2 },
+        selection: targetView.state.selection
+      });
+    } finally {
+      isApplyingExternalUpdate.current = false;
+    }
+  }, []);
   (0, import_react154.useEffect)(() => {
     if (!editorHostRef.current || view) {
       return;
@@ -124016,8 +124034,8 @@ function WebviewApp() {
         history(),
         languageSupport,
         EditorState.phrases.of({
-          sorry_your_table_cant_be_displayed_at_the_moment: "Sorry, your table can\u2019t be displayed at the moment.",
-          this_could_be_because_we_cant_support_some_elements_of_the_table: "This could be because we can\u2019t support some elements of the table."
+          sorry_your_table_cant_be_displayed_at_the_moment: "Sorry, your table can't be displayed at the moment.",
+          this_could_be_because_we_cant_support_some_elements_of_the_table: "This could be because we can't support some elements of the table."
         }),
         // Install Overleaf visual mode support, and default to Visual=true.
         visual({ visual: true, previewByPath })
@@ -124028,7 +124046,7 @@ function WebviewApp() {
       dispatchTransactions: (trs) => {
         cm.update(trs);
         setState(cm.state);
-        if (trs.some((t6) => t6.docChanged)) {
+        if (!isApplyingExternalUpdate.current && trs.some((t6) => t6.docChanged)) {
           const fullText = cm.state.doc.toString();
           const msg = { type: "overleafVisual.doc.applyEdits", fullText };
           vscode.postMessage(msg);
@@ -124036,9 +124054,14 @@ function WebviewApp() {
       },
       parent: editorHostRef.current
     });
+    if (pendingInitialContent.current !== null) {
+      applyExternalContentToView(cm, pendingInitialContent.current);
+      pendingInitialContent.current = null;
+    }
+    viewRef.current = cm;
     setView(cm);
     setState(cm.state);
-  }, [previewByPath, view]);
+  }, [applyExternalContentToView, previewByPath, view]);
   (0, import_react154.useEffect)(() => {
     if (!view) {
       return;
@@ -124057,14 +124080,13 @@ function WebviewApp() {
   (0, import_react154.useEffect)(() => {
     const onMessage = (event) => {
       const msg = event.data;
-      if (msg?.type === "overleafVisual.documentUpdate" && view) {
-        const current2 = view.state.doc.toString();
-        if (current2 !== msg.content) {
-          view.dispatch({
-            changes: { from: 0, to: view.state.doc.length, insert: msg.content },
-            selection: view.state.selection
-          });
+      if (msg?.type === "overleafVisual.documentUpdate") {
+        const activeView2 = viewRef.current;
+        if (!activeView2) {
+          pendingInitialContent.current = msg.content;
+          return;
         }
+        applyExternalContentToView(activeView2, msg.content);
         return;
       }
       if (msg?.type === "overleafVisual.previewPath.response") {
@@ -124076,7 +124098,7 @@ function WebviewApp() {
           } else {
             resolve(null);
           }
-          view?.requestMeasure();
+          activeView?.requestMeasure();
         }
       }
       if (msg?.type === "overleafVisual.compile.status") {
@@ -124107,23 +124129,11 @@ function WebviewApp() {
           return;
         }
       }
-      if (msg?.type === "overleafVisual.revealPosition" && view) {
-        const line0 = Math.max(0, Number.isFinite(msg.line) ? msg.line : 0);
-        const col0 = Math.max(0, Number.isFinite(msg.column) ? msg.column : 0);
-        const totalLines = view.state.doc.lines;
-        const clampedLine0 = Math.min(line0, Math.max(0, totalLines - 1));
-        const line = view.state.doc.line(clampedLine0 + 1);
-        const pos = Math.min(line.to, line.from + col0);
-        view.dispatch({
-          selection: { anchor: pos, head: pos },
-          scrollIntoView: true
-        });
-        view.focus();
-      }
     };
     window.addEventListener("message", onMessage);
+    vscode.postMessage({ type: "ready" });
     return () => window.removeEventListener("message", onMessage);
-  }, [view]);
+  }, [applyExternalContentToView]);
   (0, import_react154.useEffect)(() => {
     if (!view) {
       return;
@@ -124272,38 +124282,16 @@ function WebviewApp() {
             "Compiling\u2026"
           ] }) : "Compile"
         }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime137.jsx)(
-        "button",
-        {
-          type: "button",
-          className: "ov-btn",
-          title: "Sync to PDF (forward search)",
-          disabled: !view,
-          onClick: () => {
-            if (!view) {
-              return;
-            }
-            const head = view.state.selection.main.head;
-            const line = view.state.doc.lineAt(head);
-            const line0 = line.number - 1;
-            const column0 = head - line.from;
-            const msg = { type: "overleafVisual.synctex.forward", line: line0, column: column0 };
-            vscode.postMessage(msg);
-          },
-          children: "Sync to PDF"
-        }
       )
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime137.jsx)("div", { className: "ov-editor", ref: editorHostRef }),
     /* @__PURE__ */ (0, import_jsx_runtime137.jsxs)("div", { className: "ov-status", children: [
-      "Overleaf Visual Editor (local) \u2014 ",
+      "Overleaf Visual Editor (local) - ",
       compileStatus
     ] })
   ] }) }) }) }) }) }) }) });
 }
 (0, import_client3.createRoot)(rootEl).render(/* @__PURE__ */ (0, import_jsx_runtime137.jsx)(WebviewApp, {}));
-vscode.postMessage({ type: "ready" });
 window.addEventListener("add-new-review-comment", (e10) => {
   console.warn("[overleaf-visual] add-new-review-comment (not implemented)", e10);
   alert("Comments are not implemented yet in overleaf-visual.");

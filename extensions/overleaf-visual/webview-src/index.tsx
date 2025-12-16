@@ -116,11 +116,19 @@ function WebviewApp() {
 	const editorHostRef = useRef<HTMLDivElement | null>(null);
 	const [view, setView] = useState<EditorView | null>(null);
 	const [state, setState] = useState<EditorState>(() => EditorState.create());
+	const viewRef = useRef<EditorView | null>(null);
 
 	const [showVisual, setShowVisual] = useState(true);
 	const [isCompiling, setIsCompiling] = useState(false);
 	const [compileStatus, setCompileStatus] = useState<string>('Ready');
 	const compileTimeoutRef = useRef<number | null>(null);
+
+	// Document sync:
+	// - The extension replies to `{ type: 'ready' }` with `overleafVisual.documentUpdate`.
+	// - That message can arrive before CodeMirror is constructed; queue it.
+	// - Applying `documentUpdate` should not echo back `doc.applyEdits` (which can mark the file dirty).
+	const pendingInitialContent = useRef<string | null>(null);
+	const isApplyingExternalUpdate = useRef(false);
 
 	// Preview-by-path bridge
 	const requestIdRef = useRef(0);
@@ -143,6 +151,22 @@ function WebviewApp() {
 			}, 2000);
 		});
 		return null;
+	}, []);
+
+	const applyExternalContentToView = useCallback((targetView: EditorView, content: string) => {
+		const current = targetView.state.doc.toString();
+		if (current === content) {
+			return;
+		}
+		isApplyingExternalUpdate.current = true;
+		try {
+			targetView.dispatch({
+				changes: { from: 0, to: targetView.state.doc.length, insert: content },
+				selection: targetView.state.selection,
+			});
+		} finally {
+			isApplyingExternalUpdate.current = false;
+		}
 	}, []);
 
 	// Create CodeMirror view once
@@ -177,7 +201,7 @@ function WebviewApp() {
 				cm.update(trs);
 				setState(cm.state);
 				// Send doc updates to extension host
-				if (trs.some(t => t.docChanged)) {
+				if (!isApplyingExternalUpdate.current && trs.some(t => t.docChanged)) {
 					const fullText = cm.state.doc.toString();
 					const msg: DocumentEditMessage = { type: 'overleafVisual.doc.applyEdits', fullText };
 					vscode.postMessage(msg);
@@ -186,9 +210,16 @@ function WebviewApp() {
 			parent: editorHostRef.current,
 		});
 
+		// If the extension already sent initial content before CodeMirror was ready, apply it now.
+		if (pendingInitialContent.current !== null) {
+			applyExternalContentToView(cm, pendingInitialContent.current);
+			pendingInitialContent.current = null;
+		}
+
+		viewRef.current = cm;
 		setView(cm);
 		setState(cm.state);
-	}, [previewByPath, view]);
+	}, [applyExternalContentToView, previewByPath, view]);
 
 	// React -> CodeMirror toggle visual mode (Overleaf-controlled)
 	useEffect(() => {
@@ -217,14 +248,14 @@ function WebviewApp() {
 		const onMessage = (event: MessageEvent) => {
 			const msg = event.data as DocumentUpdateMessage | PreviewPathResponseMessage | CompileStatusMessage;
 
-			if (msg?.type === 'overleafVisual.documentUpdate' && view) {
-				const current = view.state.doc.toString();
-				if (current !== msg.content) {
-					view.dispatch({
-						changes: { from: 0, to: view.state.doc.length, insert: msg.content },
-						selection: view.state.selection,
-					});
+			if (msg?.type === 'overleafVisual.documentUpdate') {
+				const activeView = viewRef.current;
+				if (!activeView) {
+					// Queue latest content until CodeMirror is ready.
+					pendingInitialContent.current = msg.content;
+					return;
 				}
+				applyExternalContentToView(activeView, msg.content);
 				return;
 			}
 
@@ -238,7 +269,7 @@ function WebviewApp() {
 						resolve(null);
 					}
 					// Ask CodeMirror to re-measure; many widgets call requestMeasure after async work.
-					view?.requestMeasure();
+					activeView?.requestMeasure();
 				}
 			}
 
@@ -273,8 +304,11 @@ function WebviewApp() {
 		};
 
 		window.addEventListener('message', onMessage);
+		// Request initial document content only after the message handler is registered,
+		// so we don't miss the extension's first `documentUpdate` reply.
+		vscode.postMessage({ type: 'ready' });
 		return () => window.removeEventListener('message', onMessage);
-	}, [view]);
+	}, [applyExternalContentToView]);
 
 	// Make "Insert figure" work without Overleaf's modal stack:
 	// Overleaf's toolbar dispatches a `figure-modal:open` event, expecting a modal to handle it.
@@ -468,9 +502,6 @@ function WebviewApp() {
 }
 
 createRoot(rootEl).render(<WebviewApp />);
-
-// Kick things off (request initial document content)
-vscode.postMessage({ type: 'ready' });
 
 // Stub Overleaf global events for actions we haven't implemented yet
 window.addEventListener('add-new-review-comment', (e) => {

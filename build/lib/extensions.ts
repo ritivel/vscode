@@ -670,8 +670,18 @@ async function esbuildExtensions(taskName: string, isWatch: boolean, scripts: { 
 }
 
 export async function buildExtensionMedia(isWatch: boolean, outputRoot?: string) {
-	return esbuildExtensions('esbuilding extension media', isWatch, esbuildMediaScripts.map(p => ({
-		script: path.join(extensionsPath, p),
-		outputRoot: outputRoot ? path.join(root, outputRoot, path.dirname(p)) : undefined
+	const existingMediaScripts = esbuildMediaScripts
+		.map(p => ({ rel: p, script: path.join(extensionsPath, p) }))
+		.filter(({ rel, script }) => {
+			if (!fs.existsSync(script)) {
+				fancyLog.warn(`Skipping missing extension media build script: ${ansiColors.yellow(path.join('extensions', rel))}`);
+				return false;
+			}
+			return true;
+		});
+
+	return esbuildExtensions('esbuilding extension media', isWatch, existingMediaScripts.map(({ rel, script }) => ({
+		script,
+		outputRoot: outputRoot ? path.join(root, outputRoot, path.dirname(rel)) : undefined
 	})));
 }
