@@ -466,7 +466,7 @@ function WebviewApp() {
 											<button
 												type="button"
 												className="ov-btn primary"
-												title="Compile and open PDF preview"
+												title="See in PDF"
 												disabled={isCompiling}
 												onClick={() => {
 													const msg: CompileRequestMessage = { type: 'overleafVisual.compile' };
@@ -482,7 +482,7 @@ function WebviewApp() {
 														Compiling…
 													</span>
 												) : (
-													'Compile'
+													'see in pdf'
 												)}
 											</button>
 										</div>

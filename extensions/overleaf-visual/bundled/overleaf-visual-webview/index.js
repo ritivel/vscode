@@ -124269,7 +124269,7 @@ function WebviewApp() {
         {
           type: "button",
           className: "ov-btn primary",
-          title: "Compile and open PDF preview",
+          title: "See in PDF",
           disabled: isCompiling,
           onClick: () => {
             const msg = { type: "overleafVisual.compile" };
@@ -124280,7 +124280,7 @@ function WebviewApp() {
           children: isCompiling ? /* @__PURE__ */ (0, import_jsx_runtime137.jsxs)("span", { className: "ov-inline", children: [
             /* @__PURE__ */ (0, import_jsx_runtime137.jsx)("span", { className: "ov-spinner", "aria-hidden": "true" }),
             "Compiling\u2026"
-          ] }) : "Compile"
+          ] }) : "see in pdf"
         }
       )
     ] }),
