@@ -504,7 +504,8 @@ export function registerChatActions() {
 		async run(accessor: ServicesAccessor) {
 			// Check if Cline (Ritivel) extension is installed
 			const extensionsWorkbenchService = accessor.get(IExtensionsWorkbenchService);
-			const commandService = accessor.get(ICommandService);
+			const viewsService = accessor.get(IViewsService);
+			const viewDescriptorService = accessor.get(IViewDescriptorService);
 
 			// Try to find Cline extension (could be claude-dev or cline)
 			const clineExtensions = extensionsWorkbenchService.local.filter(ext =>
@@ -515,15 +516,25 @@ export function registerChatActions() {
 
 			if (clineExtensions.length > 0) {
 				const clineExtension = clineExtensions[0];
-				// Try to open Cline's sidebar instead of default chat
+				// Try to open Cline's sidebar in the auxiliary bar (right pane)
 				try {
-					// Try to open Cline sidebar using the view focus command
 					// The view ID format is: {extensionName}.SidebarProvider
 					const viewId = clineExtension.identifier.id.includes('claude-dev')
 						? 'claude-dev.SidebarProvider'
 						: 'cline.SidebarProvider';
 
-					await commandService.executeCommand(`${viewId}.focus`);
+					// Get the view descriptor and its container
+					const viewDescriptor = viewDescriptorService.getViewDescriptorById(viewId);
+					if (viewDescriptor) {
+						const currentLocation = viewDescriptorService.getViewLocationById(viewId);
+						// Move to auxiliary bar (right pane) if not already there
+						if (currentLocation !== ViewContainerLocation.AuxiliaryBar) {
+							viewDescriptorService.moveViewToLocation(viewDescriptor, ViewContainerLocation.AuxiliaryBar, 'chat-toggle');
+						}
+					}
+
+					// Open the view in the right pane
+					await viewsService.openView(viewId, true);
 					return;
 				} catch (error) {
 					// If command fails, fall through to default chat behavior
@@ -533,8 +544,6 @@ export function registerChatActions() {
 
 			// Fall back to default chat behavior if Cline is not available
 			const layoutService = accessor.get(IWorkbenchLayoutService);
-			const viewsService = accessor.get(IViewsService);
-			const viewDescriptorService = accessor.get(IViewDescriptorService);
 			const widgetService = accessor.get(IChatWidgetService);
 
 			const chatLocation = viewDescriptorService.getViewLocationById(ChatViewId);
